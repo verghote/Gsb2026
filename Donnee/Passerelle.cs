@@ -70,6 +70,11 @@ namespace Donnee
             );
         }
 
+        /// <summary>
+        ///  Récupère le nom du visiteur connecté à partir de la base de données.
+        /// </summary>
+        /// <param name="cnx"></param>
+        /// <returns>nomPrenom de la vue leVisiteur</returns>
         private static string getNomVisiteur(MySqlConnection cnx)
         {
             string sql = "Select nomPrenom from leVisiteur;";
@@ -148,7 +153,6 @@ namespace Donnee
             return lesFamilles;
         }
 
-
         /// <summary>
         /// Charge la liste des villes associées au visiteur.
         /// </summary>
@@ -196,7 +200,6 @@ namespace Donnee
             }
             return lesMedicaments;
         }
-
 
         /// <summary>
         /// Charge la liste des lesPraticiens associés au visiteur.
@@ -247,7 +250,6 @@ namespace Donnee
 
             return mesPraticiens;
         }
-
 
         /// <summary>
         /// Charge la liste des visites associées au visiteur.
@@ -308,7 +310,6 @@ namespace Donnee
 
             return mesVisites;
         }
-
 
         /// <summary>
         /// Charge les échantillons associés aux visites.
