@@ -116,9 +116,12 @@
             btnAjouter.TabIndex = 4;
             btnAjouter.Text = "Ajouter";
             btnAjouter.UseVisualStyleBackColor = false;
+            btnAjouter.Click += btnAjouter_Click;
             // 
             // dtpDate
             // 
+            dtpDate.CustomFormat = "dd/MM/yyyy HH:mm";
+            dtpDate.Format = DateTimePickerFormat.Custom;
             dtpDate.Location = new Point(109, 149);
             dtpDate.Name = "dtpDate";
             dtpDate.Size = new Size(200, 23);

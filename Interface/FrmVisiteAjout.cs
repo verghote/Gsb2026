@@ -1,11 +1,6 @@
 ﻿using Metier;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
+using Donnee;
 
 namespace Interface
 {
@@ -22,8 +17,15 @@ namespace Interface
         private void FrmVisiteAjout_Load(object sender, EventArgs e)
         {
             parametrerComposant();
+            remplirDgv();
 
         }
+
+        private void btnAjouter_Click(object sender, EventArgs e)
+        {
+            ajout();
+        }
+
 
         #endregion
 
@@ -43,11 +45,17 @@ namespace Interface
             cbxPraticien.DisplayMember = "NomPrenom";
             cbxPraticien.ValueMember = "Id";
             cbxPraticien.SelectedIndex = 0;
+            cbxPraticien.DropDownStyle = ComboBoxStyle.DropDownList;
 
             // alimentation de la zone de liste des motifs
             cbxMotif.DataSource = session.LesMotifs;
             cbxMotif.DisplayMember = "Libelle";
             cbxMotif.ValueMember = "Id";
+            cbxMotif.DropDownStyle = ComboBoxStyle.DropDownList;
+
+            // paramétrage du DateTimePicker
+            dtpDate.Format = DateTimePickerFormat.Custom;
+            dtpDate.CustomFormat = "dd/MM/yyyy HH:mm";
 
             // paramétrage du datagridview
             parametrerDgv(dgvVisites);
@@ -229,15 +237,72 @@ namespace Interface
             // vider le datagridview
             dgvVisites.Rows.Clear();
 
-            // PArcourir les visites dans l'ordre chronologique
-            foreach(Visite v in session.MesVisites.Where(v => v.Bilan is null))
+            // Parcourir les visites dans l'ordre chronologique
+            foreach (Visite v in session.MesVisites.Where(v => v.Bilan is null).OrderBy(v => v.DateEtHeure))
             {
-                dgvVisites.Rows.Add(v.DateEtHeure.ToLongDateString(), 
-                         v.DateEtHeure.ToShortTimeString())
+                dgvVisites.Rows.Add(
+                         v.DateEtHeure.ToLongDateString(),
+                         v.DateEtHeure.ToShortTimeString(),
+                         v.LePraticien.Ville,
+                         v.LePraticien.NomPrenom);
             }
         }
 
+        // enregistrer la visite
+        private void ajout()
+        {
+            // vérifier le praticien
+            if (cbxPraticien.SelectedItem == null)
+            {
+                MessageBox.Show("Veuillez sélectionner un praticien.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // vérifier le motif
+            if (cbxMotif.SelectedItem == null)
+            {
+                MessageBox.Show("Veuillez sélectionner un motif.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // vérifier la date et l'heure
+            if (dtpDate.Value < DateTime.Now)
+            {
+                MessageBox.Show("Veuillez sélectionner une date et une heure futures.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                // récupérer les données saisies
+                Praticien p = (Praticien)cbxPraticien.SelectedItem;
+                Motif m = (Motif)cbxMotif.SelectedItem;
+                DateTime date = dtpDate.Value;
+
+                // enregistrer dans la base de données
+                int id = Passerelle.ajouterRendezVous(p.Id, m.Id, date);
+
+                // créer la visite et l'ajouter à la session
+                session.MesVisites.Add(new Visite(id, p, m, date));
+
+                // mettre à jour le datagridview
+                remplirDgv();
+
+                // message de confirmation
+                MessageBox.Show("La visite a été ajoutée avec succès.", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // activer l'option du menu permettant la modification de la visite dans le menu
+                modifierRendezVous.Enabled = true;
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
 
         #endregion
+
+
     }
 }
